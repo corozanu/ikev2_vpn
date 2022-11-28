@@ -7,7 +7,7 @@ if ! [ -x "$(command -v lsb_release)" ]; then
 	bail_out
 fi
 
-if [ $(lsb_release -i -s) != "Ubuntu" ] || [ $(lsb_release -r -s) != "16.04" ]; then 
+if [ $(lsb_release -i -s) != "Ubuntu" ] || [ $(lsb_release -r -s) != "20.04" ]; then 
 	bail_out
 fi
 
@@ -15,8 +15,6 @@ export REGION=GB
 export IP=$(curl -s api.ipify.org)
 
 apt-get update
-apt-get -y upgrade
-apt-get -y dist-upgrade
 
 # skips interactive dialog for iptables-persistent installer
 export DEBIAN_FRONTEND=noninteractive
@@ -88,7 +86,7 @@ conn ikev2-vpn
     rightid=%any
     rightauth=eap-mschapv2
     rightdns=8.8.8.8,8.8.4.4
-    rightsourceip=10.10.10.0/24
+    rightsourceip=192.168.40.0/24
     rightsendcert=never
     eap_identity=%identity
 EOF
@@ -128,11 +126,11 @@ iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -p udp --dport  500 -j ACCEPT
 iptables -A INPUT -p udp --dport 4500 -j ACCEPT
 
-iptables -A FORWARD --match policy --pol ipsec --dir in  --proto esp -s 10.10.10.10/24 -j ACCEPT
-iptables -A FORWARD --match policy --pol ipsec --dir out --proto esp -d 10.10.10.10/24 -j ACCEPT
-iptables -t nat -A POSTROUTING -s 10.10.10.10/24 -o eth0 -m policy --pol ipsec --dir out -j ACCEPT
-iptables -t nat -A POSTROUTING -s 10.10.10.10/24 -o eth0 -j MASQUERADE
-iptables -t mangle -A FORWARD --match policy --pol ipsec --dir in -s 10.10.10.10/24 -o eth0 -p tcp -m tcp --tcp-flags SYN,RST SYN -m tcpmss --mss 1361:1536 -j TCPMSS --set-mss 1360
+iptables -A FORWARD --match policy --pol ipsec --dir in  --proto esp -s 192.168.40.10/24 -j ACCEPT
+iptables -A FORWARD --match policy --pol ipsec --dir out --proto esp -d 192.168.40.10/24 -j ACCEPT
+iptables -t nat -A POSTROUTING -s 192.168.40.10/24 -o eth0 -m policy --pol ipsec --dir out -j ACCEPT
+iptables -t nat -A POSTROUTING -s 192.168.40.10/24 -o eth0 -j MASQUERADE
+iptables -t mangle -A FORWARD --match policy --pol ipsec --dir in -s 192.168.40.10/24 -o eth0 -p tcp -m tcp --tcp-flags SYN,RST SYN -m tcpmss --mss 1361:1536 -j TCPMSS --set-mss 1360
 
 iptables -A INPUT -j DROP
 iptables -A FORWARD -j DROP
